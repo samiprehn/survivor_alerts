@@ -6,7 +6,7 @@ from pathlib import Path
 NTFY_TOPIC = os.environ.get('NTFY_TOPIC', '')
 SEEN_FILE = Path('seen.json')
 
-SURVIVOR_KEYWORDS = ['voted out', 'eliminated', 'boot', 'leave the game', 'go home']
+KALSHI_SERIES = 'KXSURVIVORELIMINATION'
 
 
 def load_seen():
@@ -20,8 +20,7 @@ def save_seen(seen):
 
 
 def notify(source, title, url):
-    msg = f"{source}: {title}"
-    print(f"NEW MARKET — {msg} ({url})")
+    print(f"NEW — {source}: {title} ({url})")
     if not NTFY_TOPIC:
         return
     try:
@@ -35,27 +34,22 @@ def notify(source, title, url):
         print(f"ntfy error: {e}")
 
 
-def is_survivor_boot(text):
-    text = text.lower()
-    return 'survivor' in text and any(kw in text for kw in SURVIVOR_KEYWORDS)
-
-
 def check_polymarket(seen_ids):
     new = []
     try:
         r = requests.get(
-            'https://gamma-api.polymarket.com/markets',
-            params={'search': 'survivor', 'limit': 100},
+            'https://gamma-api.polymarket.com/events',
+            params={'tag_slug': 'survivor', 'limit': 50},
             timeout=15,
         )
         r.raise_for_status()
-        for m in r.json():
-            mid = str(m.get('id', ''))
-            question = m.get('question', '')
-            if is_survivor_boot(question) and mid not in seen_ids:
-                slug = m.get('slug', mid)
-                new.append({'id': mid, 'title': question, 'url': f'https://polymarket.com/event/{slug}'})
-                seen_ids.append(mid)
+        for e in r.json():
+            eid = str(e.get('id', ''))
+            title = e.get('title', '')
+            slug = e.get('slug', eid)
+            if eid and eid not in seen_ids:
+                new.append({'id': eid, 'title': title, 'url': f'https://polymarket.com/event/{slug}'})
+                seen_ids.append(eid)
     except Exception as e:
         print(f"Polymarket error: {e}")
     return new
@@ -65,16 +59,16 @@ def check_kalshi(seen_ids):
     new = []
     try:
         r = requests.get(
-            'https://api.elections.kalshi.com/trade-api/v2/markets',
-            params={'search': 'survivor', 'limit': 100, 'status': 'open'},
+            'https://api.elections.kalshi.com/trade-api/v2/events',
+            params={'series_ticker': KALSHI_SERIES, 'limit': 50},
             timeout=15,
         )
         r.raise_for_status()
-        for m in r.json().get('markets', []):
-            ticker = m.get('ticker', '')
-            title = m.get('title', '')
-            if is_survivor_boot(title) and ticker not in seen_ids:
-                new.append({'id': ticker, 'title': title, 'url': f'https://kalshi.com/markets/{ticker}'})
+        for e in r.json().get('events', []):
+            ticker = e.get('event_ticker', '')
+            title = e.get('title', '')
+            if ticker and ticker not in seen_ids:
+                new.append({'id': ticker, 'title': title, 'url': f'https://kalshi.com/events/{ticker}'})
                 seen_ids.append(ticker)
     except Exception as e:
         print(f"Kalshi error: {e}")
