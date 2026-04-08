@@ -26,5 +26,19 @@
     "290369",
     "325898",
     "336405"
-  ]
+  ],
+  "frontrunners": {
+    "kalshi": {
+      "event": "KXSURVIVORELIMINATION-26APR11",
+      "name": "Dee Valladares",
+      "odds": 0.85,
+      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26APR11"
+    },
+    "polymarket": {
+      "event": "336405",
+      "name": "Dee Valladares",
+      "odds": 0.645,
+      "url": "https://polymarket.com/event/who-will-be-voted-off-survivor-season-50-this-week-april-8"
+    }
+  }
 }
