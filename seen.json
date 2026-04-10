@@ -17,7 +17,8 @@
     "KXSURVIVORELIMINATION-25NOV07",
     "KXSURVIVORELIMINATION-25OCT31",
     "KXSURVIVORELIMINATION-25OCT30",
-    "KXSURVIVORELIMINATION-26APR11"
+    "KXSURVIVORELIMINATION-26APR11",
+    "KXSURVIVORELIMINATION-26APR18"
   ],
   "polymarket": [
     "242345",
@@ -30,10 +31,10 @@
   ],
   "frontrunners": {
     "kalshi": {
-      "event": "KXSURVIVORELIMINATION-26APR11",
-      "name": "Dee Valladares",
-      "odds": 0.99,
-      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26APR11"
+      "event": "KXSURVIVORELIMINATION-26APR18",
+      "name": "Rizo Velovic",
+      "odds": 0.0,
+      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26APR18"
     },
     "polymarket": {
       "event": "361348",
