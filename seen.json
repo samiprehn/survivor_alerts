@@ -18,7 +18,8 @@
     "KXSURVIVORELIMINATION-25OCT31",
     "KXSURVIVORELIMINATION-25OCT30",
     "KXSURVIVORELIMINATION-26APR11",
-    "KXSURVIVORELIMINATION-26APR18"
+    "KXSURVIVORELIMINATION-26APR18",
+    "KXSURVIVORELIMINATION-26APR24"
   ],
   "polymarket": [
     "242345",
@@ -31,10 +32,10 @@
   ],
   "frontrunners": {
     "kalshi": {
-      "event": "KXSURVIVORELIMINATION-26APR18",
-      "name": "Chrissy Hofbeck",
-      "odds": 0.99,
-      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26APR18"
+      "event": "KXSURVIVORELIMINATION-26APR24",
+      "name": "Christian Hubicki",
+      "odds": 0.0,
+      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26APR24"
     },
     "polymarket": {
       "event": "361348",
