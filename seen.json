@@ -30,20 +30,21 @@
     "325898",
     "336405",
     "361348",
-    "385485"
+    "385485",
+    "410232"
   ],
   "frontrunners": {
     "kalshi": {
       "event": "KXSURVIVORELIMINATION-26MAY09",
       "name": "Stephenie LaGrossa Kendrick",
-      "odds": 0.88,
+      "odds": 0.85,
       "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26MAY09"
     },
     "polymarket": {
-      "event": "385485",
-      "name": "Stephenie LaGrossa Kendrick",
-      "odds": 0.0005,
-      "url": "https://polymarket.com/event/who-will-be-voted-off-survivor-season-50-this-week-april-22"
+      "event": "410232",
+      "name": "Rizo Velovic",
+      "odds": 0.27,
+      "url": "https://polymarket.com/event/who-will-be-voted-off-survivor-season-50-this-week-april-29"
     }
   }
 }
