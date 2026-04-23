@@ -19,7 +19,8 @@
     "KXSURVIVORELIMINATION-25OCT30",
     "KXSURVIVORELIMINATION-26APR11",
     "KXSURVIVORELIMINATION-26APR18",
-    "KXSURVIVORELIMINATION-26APR24"
+    "KXSURVIVORELIMINATION-26APR24",
+    "KXSURVIVORELIMINATION-26MAY09"
   ],
   "polymarket": [
     "242345",
@@ -33,10 +34,10 @@
   ],
   "frontrunners": {
     "kalshi": {
-      "event": "KXSURVIVORELIMINATION-26APR24",
-      "name": "Christian Hubicki",
-      "odds": 0.99,
-      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26APR24"
+      "event": "KXSURVIVORELIMINATION-26MAY09",
+      "name": "Rizo Velovic",
+      "odds": 0.0,
+      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26MAY09"
     },
     "polymarket": {
       "event": "385485",
