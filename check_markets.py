@@ -90,7 +90,12 @@ def extract_name(question, pattern):
     return m.group(1).strip() if m else question
 
 
-def get_kalshi_frontrunner():
+# Required margin (in odds, 0–1) by which a new candidate must lead the
+# previous frontrunner before we alert. Prevents 49%/50% jitter spam.
+FRONTRUNNER_MARGIN = 0.08
+
+
+def get_kalshi_candidates():
     try:
         r = requests.get(
             'https://api.elections.kalshi.com/trade-api/v2/events',
@@ -101,7 +106,6 @@ def get_kalshi_frontrunner():
         events = r.json().get('events', [])
         if not events:
             return None
-
         event_ticker = events[0].get('event_ticker', '')
         r2 = requests.get(
             'https://api.elections.kalshi.com/trade-api/v2/markets',
@@ -109,19 +113,20 @@ def get_kalshi_frontrunner():
             timeout=15,
         )
         r2.raise_for_status()
-        markets = r2.json().get('markets', [])
-
-        best = max(markets, key=lambda m: float(m.get('yes_bid_dollars') or m.get('last_price_dollars') or 0))
-        odds = float(best.get('yes_bid_dollars') or best.get('last_price_dollars') or 0)
-        name = extract_name(best.get('title', ''), r'Will (.+?) be eliminated')
-        return {'event': event_ticker, 'name': name, 'odds': odds,
-                'url': f'https://kalshi.com/events/{event_ticker}'}
+        candidates = []
+        for m in r2.json().get('markets', []):
+            odds = float(m.get('yes_bid_dollars') or m.get('last_price_dollars') or 0)
+            name = extract_name(m.get('title', ''), r'Will (.+?) be eliminated')
+            candidates.append({'name': name, 'odds': odds})
+        return {'event': event_ticker,
+                'url': f'https://kalshi.com/events/{event_ticker}',
+                'candidates': candidates}
     except Exception as e:
         print(f"Kalshi frontrunner error: {e}")
         return None
 
 
-def get_polymarket_frontrunner():
+def get_polymarket_candidates():
     try:
         r = requests.get(
             'https://gamma-api.polymarket.com/events',
@@ -129,15 +134,12 @@ def get_polymarket_frontrunner():
             timeout=15,
         )
         r.raise_for_status()
-        events = r.json()
-
-        for e in reversed(events):
+        for e in reversed(r.json()):
             markets = e.get('markets', [])
             active = [m for m in markets if m.get('active')]
             if not active:
                 continue
-
-            best_name, best_odds = None, 0.0
+            candidates = []
             for m in active:
                 outcomes = m.get('outcomes', '[]')
                 prices = m.get('outcomePrices', '[]')
@@ -148,14 +150,13 @@ def get_polymarket_frontrunner():
                 yes_price = float(prices[outcomes.index('Yes')])
                 if yes_price >= 0.99:
                     continue  # already resolved
-                if yes_price > best_odds:
-                    best_odds = yes_price
-                    best_name = extract_name(m.get('question', ''), r'Will (.+?) be voted off')
-
-            if best_name:
+                name = extract_name(m.get('question', ''), r'Will (.+?) be voted off')
+                candidates.append({'name': name, 'odds': yes_price})
+            if candidates:
                 slug = e.get('slug', str(e.get('id', '')))
-                return {'event': str(e.get('id', '')), 'name': best_name, 'odds': float(best_odds),
-                        'url': f'https://polymarket.com/event/{slug}'}
+                return {'event': str(e.get('id', '')),
+                        'url': f'https://polymarket.com/event/{slug}',
+                        'candidates': candidates}
     except Exception as e:
         print(f"Polymarket frontrunner error: {e}")
     return None
@@ -164,24 +165,40 @@ def get_polymarket_frontrunner():
 def check_frontrunners(seen):
     fr = seen.setdefault('frontrunners', {})
 
-    for source, get_fn in [('Kalshi', get_kalshi_frontrunner), ('Polymarket', get_polymarket_frontrunner)]:
-        current = get_fn()
-        if not current:
+    for source, get_fn in [('Kalshi', get_kalshi_candidates), ('Polymarket', get_polymarket_candidates)]:
+        result = get_fn()
+        if not result or not result['candidates']:
             continue
 
+        cands = sorted(result['candidates'], key=lambda c: c['odds'], reverse=True)
+        best = cands[0]
         key = source.lower()
         prev = fr.get(key)
 
-        if prev and prev.get('event') == current['event']:
-            if prev['name'] != current['name']:
-                pct = round(current['odds'] * 100)
-                notify(source,
-                       f"Frontrunner changed: {prev['name']} → {current['name']} ({pct}%)",
-                       current['url'])
-        else:
-            print(f"{source} frontrunner: {current['name']} ({round(current['odds']*100)}%) [{current['event']}]")
+        if prev and prev.get('event') == result['event']:
+            # Find the previous leader's current odds (they may still be in the race)
+            prev_now = next((c for c in cands if c['name'] == prev['name']), None)
+            prev_odds_now = prev_now['odds'] if prev_now else 0.0
 
-        fr[key] = current
+            if best['name'] == prev['name']:
+                # Same leader — silent update
+                print(f"{source} frontrunner: {best['name']} ({round(best['odds']*100)}%) [unchanged]")
+                fr[key] = {'event': result['event'], 'name': best['name'], 'odds': best['odds'], 'url': result['url']}
+            elif best['odds'] - prev_odds_now >= FRONTRUNNER_MARGIN:
+                # New leader is meaningfully ahead — alert and switch
+                pct = round(best['odds'] * 100)
+                notify(source,
+                       f"Frontrunner changed: {prev['name']} → {best['name']} ({pct}%)",
+                       result['url'])
+                fr[key] = {'event': result['event'], 'name': best['name'], 'odds': best['odds'], 'url': result['url']}
+            else:
+                # Within margin — too close to call. Keep prev as the recorded leader,
+                # update their current odds so the comparison stays fresh next run.
+                print(f"{source} close race: {prev['name']} ({round(prev_odds_now*100)}%) vs {best['name']} ({round(best['odds']*100)}%) — within {round(FRONTRUNNER_MARGIN*100)}pp, holding")
+                fr[key] = {'event': result['event'], 'name': prev['name'], 'odds': prev_odds_now, 'url': result['url']}
+        else:
+            print(f"{source} frontrunner: {best['name']} ({round(best['odds']*100)}%) [{result['event']}]")
+            fr[key] = {'event': result['event'], 'name': best['name'], 'odds': best['odds'], 'url': result['url']}
 
 
 # ── Main ───────────────────────────────────────────────────────────
