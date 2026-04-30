@@ -20,7 +20,8 @@
     "KXSURVIVORELIMINATION-26APR11",
     "KXSURVIVORELIMINATION-26APR18",
     "KXSURVIVORELIMINATION-26APR24",
-    "KXSURVIVORELIMINATION-26MAY09"
+    "KXSURVIVORELIMINATION-26MAY09",
+    "KXSURVIVORELIMINATION-26MAY08"
   ],
   "polymarket": [
     "242345",
@@ -31,7 +32,8 @@
     "336405",
     "361348",
     "385485",
-    "410232"
+    "410232",
+    "434643"
   ],
   "frontrunners": {
     "kalshi": {
@@ -41,10 +43,10 @@
       "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26MAY09"
     },
     "polymarket": {
-      "event": "410232",
-      "name": "Stephenie LaGrossa Kendrick",
-      "odds": 0.0,
-      "url": "https://polymarket.com/event/who-will-be-voted-off-survivor-season-50-this-week-april-29"
+      "event": "434643",
+      "name": "Rick Devens",
+      "odds": 0.34,
+      "url": "https://polymarket.com/event/who-will-be-voted-off-survivor-season-50-this-week-may-6"
     }
   }
 }
