@@ -21,7 +21,8 @@
     "KXSURVIVORELIMINATION-26APR18",
     "KXSURVIVORELIMINATION-26APR24",
     "KXSURVIVORELIMINATION-26MAY09",
-    "KXSURVIVORELIMINATION-26MAY08"
+    "KXSURVIVORELIMINATION-26MAY08",
+    "KXSURVIVORELIMINATION-26MAY23"
   ],
   "polymarket": [
     "242345",
@@ -37,10 +38,10 @@
   ],
   "frontrunners": {
     "kalshi": {
-      "event": "KXSURVIVORELIMINATION-26MAY09",
-      "name": "Stephenie LaGrossa Kendrick",
-      "odds": 0.99,
-      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26MAY09"
+      "event": "KXSURVIVORELIMINATION-26MAY23",
+      "name": "Rick Devens",
+      "odds": 0.55,
+      "url": "https://kalshi.com/events/KXSURVIVORELIMINATION-26MAY23"
     },
     "polymarket": {
       "event": "434643",
