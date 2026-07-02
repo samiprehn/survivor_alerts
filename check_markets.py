@@ -25,19 +25,22 @@ def save_seen(seen):
 def notify(source, title, url=''):
     print(f"ALERT — {source}: {title}")
     if not NTFY_TOPIC:
-        return
+        return True
     try:
         headers = {'Title': f'Survivor {source} Alert'}
         if url:
             headers['Click'] = url
-        requests.post(
+        resp = requests.post(
             f'https://ntfy.sh/{NTFY_TOPIC}',
             data=title.encode('utf-8'),
             headers=headers,
             timeout=10,
         )
+        resp.raise_for_status()
+        return True
     except Exception as e:
         print(f"ntfy error: {e}")
+        return False
 
 
 # ── New market checks ──────────────────────────────────────────────
@@ -57,7 +60,6 @@ def check_polymarket_new(seen_ids):
             slug = e.get('slug', eid)
             if eid and eid not in seen_ids:
                 new.append({'id': eid, 'title': title, 'url': f'https://polymarket.com/event/{slug}'})
-                seen_ids.append(eid)
     except Exception as e:
         print(f"Polymarket new-market error: {e}")
     return new
@@ -77,7 +79,6 @@ def check_kalshi_new(seen_ids):
             title = e.get('title', '')
             if ticker and ticker not in seen_ids:
                 new.append({'id': ticker, 'title': title, 'url': f'https://kalshi.com/events/{ticker}'})
-                seen_ids.append(ticker)
     except Exception as e:
         print(f"Kalshi new-market error: {e}")
     return new
@@ -99,7 +100,7 @@ def get_kalshi_candidates():
     try:
         r = requests.get(
             'https://api.elections.kalshi.com/trade-api/v2/events',
-            params={'series_ticker': KALSHI_SERIES, 'limit': 5},
+            params={'series_ticker': KALSHI_SERIES, 'status': 'open', 'limit': 5},
             timeout=15,
         )
         r.raise_for_status()
@@ -187,10 +188,12 @@ def check_frontrunners(seen):
             elif best['odds'] - prev_odds_now >= FRONTRUNNER_MARGIN:
                 # New leader is meaningfully ahead — alert and switch
                 pct = round(best['odds'] * 100)
-                notify(source,
-                       f"Frontrunner changed: {prev['name']} → {best['name']} ({pct}%)",
-                       result['url'])
-                fr[key] = {'event': result['event'], 'name': best['name'], 'odds': best['odds'], 'url': result['url']}
+                if notify(source,
+                          f"Frontrunner changed: {prev['name']} → {best['name']} ({pct}%)",
+                          result['url']):
+                    fr[key] = {'event': result['event'], 'name': best['name'], 'odds': best['odds'], 'url': result['url']}
+                else:
+                    print("Notification failed, will retry next run")
             else:
                 # Within margin — too close to call. Keep prev as the recorded leader,
                 # update their current odds so the comparison stays fresh next run.
@@ -210,9 +213,15 @@ def main():
     new_kalshi = check_kalshi_new(seen['kalshi'])
 
     for m in new_poly:
-        notify('Polymarket', f"New market: {m['title']}", m['url'])
+        if notify('Polymarket', f"New market: {m['title']}", m['url']):
+            seen['polymarket'].append(m['id'])
+        else:
+            print(f"Notification failed for {m['id']}, will retry next run")
     for m in new_kalshi:
-        notify('Kalshi', f"New market: {m['title']}", m['url'])
+        if notify('Kalshi', f"New market: {m['title']}", m['url']):
+            seen['kalshi'].append(m['id'])
+        else:
+            print(f"Notification failed for {m['id']}, will retry next run")
 
     check_frontrunners(seen)
     save_seen(seen)
